@@ -20,7 +20,7 @@ To make it simple there are directories here containing one playbook and one exa
 inventory file. It is recommended to copy that inventory file to /etc/ansible/hosts
 and store your private settings away from the git controlled directories.
 
-Documentation: https://docs.ansible.com/ansible_community.html
+Learn more about Ansible here: https://docs.ansible.com/ansible_community.html
 
 ## Installation of CloudedBats - WURB 2020
 
@@ -29,7 +29,7 @@ Main workflow, overview:
 - Install the Raspberry Pi Operating system on an SD card.
 - Move the SD card to a Raspberry Pi computer and power it up.
 - Download the Ansible playbook and inventory files into another Linux/Unix computer.
-- Adjust the inventory file and run Ansible.
+- Adjust the inventory file and run the Ansible playbook.
 - Restart the Raspberry Pi.
 - Add extra features not managed by Ansible, like RaspAP, etc.
 
@@ -39,12 +39,12 @@ Use the **Raspberry Pi Imager** to install the Raspberry Pi operating system.
 
 - Download and install the Raspberry Pi Imager from here:
 https://www.raspberrypi.com/software/
-- Start Raspberry Pi Imager.
+- Start the Raspberry Pi Imager.
 - Select the operating system "Raspberry Pi OS Lite", use the 32-bit version.
-- Attach an SD card and select it.
+- Attach an SD card and select it in Raspberry Pi Imager.
 - Click the “settings” button (the cogwheel).
 
-Then make these setting, to be used as an example. It will also work with an 
+Then make these setting, to be used as an example. It will also work with an
 Ethernet cable and then the WiFi part can be omitted.
 
 Note that the username must be **pi** in this version of the WURB bat detector.
@@ -71,7 +71,7 @@ not on the same Raspberry Pi that is used as a bat detector.
 Since Ansible is a Python application it is installed with pip.
 
     git clone https://github.com/cloudedbats/ansible-playbooks.git
-    cd ansible/
+    cd ansible-playbooks
     python3 -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt 
@@ -100,12 +100,22 @@ password for the target computer when establishing the connection.
 Go to the directory where the playbook is located. Then execute the Ansible playbook on all
 connected computers that are described in the inventory list.
 
+    # Activate the virtual environment venv, if not already done.
+    cd ansible-playbooks
+    source venv/bin/activate
+
+    # Go to the wurb 2020 directory.
     cd raspberrypi_wurb_2020
 
-    # Use this if the inventory list is copied to /etc/ansible/hosts:
+    # Copy the inventor file and edit it (optional).
+    sudo cp inventory.yaml /etc/ansible/hosts
+    sudo nano /etc/ansible/hosts
+
+    # Use this if the inventory list is copied
+    # to /etc/ansible/hosts and edited there.
     ansible-playbook -v playbook.yaml
 
-    # Use this if the template inventory list is modified:
+    # Use this if the inventory.yaml file is modified instead.
     ansible-playbook -i inventory.yaml -v playbook.yaml
 
 Some other useful Ansible commands
@@ -125,7 +135,8 @@ Some other useful Ansible commands
 
 ## Restart the Raspberry Pi bat detector
 
-This can be done by using Ansible
+The reboot can be done by using Ansible
+(but there will be a lot of warnings when the contact is broken).
 
     ansible -i inventory.yaml wurbs -a "sudo reboot"
 
