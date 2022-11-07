@@ -1,0 +1,19 @@
+---
+all:
+  children:
+    wurbs:
+      hosts:
+        # wurb01:
+        #   ansible_host: wurb01.local
+        # wurb02:
+        #   ansible_host: wurb02.local
+        wurb99:
+          ansible_host: wurb99.local
+      vars:
+          ansible_user: pi
+          # Alternatives for timezone:
+          # https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+          timezone: "Europe/Stockholm"
+          wifi_ssid: my-home-wifi
+          wifi_password: my-home-wifi-password
+          wifi_country: "SE"

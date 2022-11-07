@@ -1,0 +1,84 @@
+---
+- name: Install software for CloudedBats WURB 2020 on Raspberry Pi.
+  hosts: wurbs
+  become: true
+
+  tasks:
+    - name: Update apt cache.
+      ansible.builtin.apt:
+        update_cache: true
+
+    - name: Raspi-config, change timezone.
+      ansible.builtin.command: "raspi-config nonint do_change_timezone {{ timezone }}"
+      changed_when: false
+
+    - name: Raspi-config, set WiFi country
+      ansible.builtin.command: "raspi-config nonint do_wifi_country {{ wifi_country }}"
+      changed_when: false
+
+    - name: Raspi-config, set WiFi SSID and password.
+      ansible.builtin.command: "raspi-config nonint do_wifi_ssid_passphrase {{ wifi_ssid }} {{ wifi_password }}"
+      changed_when: false
+
+    - name: Raspi-config, turn off waiting for network at boot.
+      ansible.builtin.command: "raspi-config nonint do_boot_wait 0"
+      changed_when: false
+
+    - name: Raspi-config, expand filesystem.
+      ansible.builtin.command: "raspi-config nonint do_expand_rootfs"
+      changed_when: false
+
+    - name: Install Debian packages.
+      ansible.builtin.apt:
+        name:
+          - git
+          - python3-venv
+          - python3-dev
+          - libatlas-base-dev
+          - udevil
+
+    - name: Copy udev rules for Pettersson M500.
+      ansible.builtin.copy:
+        src: files/pettersson_m500_batmic.rules
+        dest: /etc/udev/rules.d/pettersson_m500_batmic.rules
+        owner: pi
+        group: pi
+        mode: u=rw,g=r,o=r
+
+    - name: Clone WURB-2020 master branch from GitHub.
+      ansible.builtin.git:
+        repo: https://github.com/cloudedbats/cloudedbats_wurb_2020.git
+        dest: /home/pi/cloudedbats_wurb_2020
+        single_branch: true
+        version: master
+
+    - name: Create venv and execute pip install.
+      ansible.builtin.pip:
+        requirements: /home/pi/cloudedbats_wurb_2020/requirements.txt
+        virtualenv: /home/pi/cloudedbats_wurb_2020/venv
+        virtualenv_command: 'python3 -m venv'
+
+    # OLD STYLE NOT USED. Use systemd instead, see below.
+    # - name: Add wurb start command to etc/rc.local.
+    #   ansible.builtin.lineinfile:
+    #     path: /etc/rc.local
+    #     insertbefore: '^exit 0'
+    #     line: 'sudo -u pi bash /home/pi/cloudedbats_wurb_2020/wurb_rec_start.sh &'
+
+    - name: Copy systemd service file used to run the detector software.
+      ansible.builtin.copy:
+        src: files/wurb_2020.service
+        dest: /etc/systemd/system/wurb_2020.service
+        owner: pi
+        group: pi
+        mode: u=rw,g=r,o=r
+
+    - name: Activate systemd service to run the detector.
+      ansible.builtin.systemd:
+        name: wurb_2020
+        state: started
+        enabled: true
+
+    - name: Set headphone volume.
+      ansible.builtin.command: amixer set 'Headphone' 100%
+      changed_when: false
